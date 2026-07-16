@@ -15,8 +15,6 @@ class BarScrollActions : public ConfigObject {
     QML_ANONYMOUS
 
     CONFIG_PROPERTY(bool, workspaces, true)
-    CONFIG_PROPERTY(bool, volume, true)
-    CONFIG_PROPERTY(bool, brightness, true)
 
 public:
     explicit BarScrollActions(QObject* parent = nullptr)
@@ -27,7 +25,6 @@ class BarPopouts : public ConfigObject {
     Q_OBJECT
     QML_ANONYMOUS
 
-    CONFIG_PROPERTY(bool, activeWindow, true)
     CONFIG_PROPERTY(bool, tray, true)
     CONFIG_PROPERTY(bool, statusIcons, true)
 
@@ -61,19 +58,6 @@ class BarWorkspaces : public ConfigObject {
 
 public:
     explicit BarWorkspaces(QObject* parent = nullptr)
-        : ConfigObject(parent) {}
-};
-
-class BarActiveWindow : public ConfigObject {
-    Q_OBJECT
-    QML_ANONYMOUS
-
-    CONFIG_PROPERTY(bool, compact, false)
-    CONFIG_PROPERTY(bool, inverted, false)
-    CONFIG_PROPERTY(bool, showOnHover, true)
-
-public:
-    explicit BarActiveWindow(QObject* parent = nullptr)
         : ConfigObject(parent) {}
 };
 
@@ -133,7 +117,6 @@ class BarConfig : public ConfigObject {
     CONFIG_SUBOBJECT(BarScrollActions, scrollActions)
     CONFIG_SUBOBJECT(BarPopouts, popouts)
     CONFIG_SUBOBJECT(BarWorkspaces, workspaces)
-    CONFIG_SUBOBJECT(BarActiveWindow, activeWindow)
     CONFIG_SUBOBJECT(BarTray, tray)
     CONFIG_SUBOBJECT(BarStatus, status)
     CONFIG_SUBOBJECT(BarClock, clock)
@@ -157,7 +140,6 @@ public:
         , m_scrollActions(new BarScrollActions(this))
         , m_popouts(new BarPopouts(this))
         , m_workspaces(new BarWorkspaces(this))
-        , m_activeWindow(new BarActiveWindow(this))
         , m_tray(new BarTray(this))
         , m_status(new BarStatus(this))
         , m_clock(new BarClock(this)) {}

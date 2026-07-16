@@ -10,14 +10,16 @@ import Caelestia.Config
 import qs.components
 import qs.services
 
-ColumnLayout {
+RowLayout {
     id: root
 
     required property ShellScreen screen
     required property ScreenState screenState
     required property BarPopouts.Wrapper popouts
     required property bool fullscreen
-    readonly property int vPadding: Tokens.padding.large
+    readonly property int hPadding: Tokens.padding.large
+
+    property bool islandHovered
 
     function closeTray(): void {
         if (!Config.bar.tray.compact)
@@ -30,8 +32,8 @@ ColumnLayout {
         }
     }
 
-    function checkPopout(y: real): void {
-        const ch = childAt(width / 2, y) as EntryWrapper;
+    function checkPopout(x: real): void {
+        const ch = childAt(x, height / 2) as WrappedLoader;
 
         if (ch?.entryId !== "tray")
             closeTray();
@@ -41,25 +43,25 @@ ColumnLayout {
             return;
         }
 
-        const id = ch.entryId;
-        const top = ch.y;
+        const id = ch.id;
+        const left = ch.x;
 
         if (id === "statusIcons" && Config.bar.popouts.statusIcons) {
             const items = (ch.item as StatusIcons).items;
-            const icon = items.childAt(items.width / 2, mapToItem(items, 0, y).y);
+            const icon = items.childAt(mapToItem(items, x, 0).x, items.height / 2);
             if (icon) {
                 popouts.currentName = icon.name;
-                popouts.currentCenter = Qt.binding(() => icon.mapToItem(root, 0, icon.implicitHeight / 2).y);
+                popouts.currentCenter = Qt.binding(() => icon.mapToItem(root, icon.implicitWidth / 2, 0).x);
                 popouts.hasCurrent = true;
             }
         } else if (id === "tray" && Config.bar.popouts.tray) {
             const tray = ch.item as Tray;
-            if (!Config.bar.tray.compact || (tray.expanded && !tray.expandIcon.contains(mapToItem(tray.expandIcon, tray.implicitWidth / 2, y)))) {
-                const index = Math.floor(((y - top - tray.padding * 2 + tray.spacing) / tray.layout.implicitHeight) * tray.items.count);
+            if (!Config.bar.tray.compact || (tray.expanded && !tray.expandIcon.contains(mapToItem(tray.expandIcon, x, tray.expandIcon.implicitHeight / 2)))) {
+                const index = Math.floor(((x - left - tray.padding * 2 + tray.spacing) / tray.layout.implicitWidth) * tray.items.count);
                 const trayItem = tray.items.itemAt(index);
                 if (trayItem) {
                     popouts.currentName = `traymenu${index}`;
-                    popouts.currentCenter = Qt.binding(() => trayItem.mapToItem(root, 0, trayItem.implicitHeight / 2).y);
+                    popouts.currentCenter = Qt.binding(() => trayItem.mapToItem(root, trayItem.implicitWidth / 2, 0).x);
                     popouts.hasCurrent = true;
                 } else {
                     popouts.hasCurrent = false;
@@ -68,36 +70,18 @@ ColumnLayout {
                 popouts.hasCurrent = false;
                 tray.expanded = true;
             }
-        } else if (id === "activeWindow" && Config.bar.popouts.activeWindow && Config.bar.activeWindow.showOnHover) {
-            popouts.currentName = id.toLowerCase();
-            popouts.currentCenter = (ch.item as Item).mapToItem(root, 0, (ch.item as Item).implicitHeight / 2).y ?? 0;
-            popouts.hasCurrent = true;
         }
     }
 
-    function handleWheel(y: real, angleDelta: point): void {
-        const ch = childAt(width / 2, y) as EntryWrapper;
-        if (ch?.entryId === "workspaces" && Config.bar.scrollActions.workspaces) {
-            // Workspace scroll
+    function handleWheel(x: real, angleDelta: point): void {
+        const ch = childAt(x, height / 2) as WrappedLoader;
+        if (ch?.id === "workspaces" && Config.bar.scrollActions.workspaces) {
             const mon = (GlobalConfig.bar.workspaces.perMonitorWorkspaces ? Hypr.monitorFor(screen) : Hypr.focusedMonitor);
             const specialWs = mon?.lastIpcObject.specialWorkspace.name;
             if (specialWs?.length > 0)
                 Hypr.dispatch(Hypr.usingLua ? `hl.dsp.workspace.toggle_special("${specialWs.slice(8)}")` : `togglespecialworkspace ${specialWs.slice(8)}`);
             else if (angleDelta.y < 0 || (GlobalConfig.bar.workspaces.perMonitorWorkspaces ? mon.activeWorkspace?.id : Hypr.activeWsId) > 1)
-                Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ workspace = "r${angleDelta.y > 0 ? "-" : "+"}1" })` : `workspace r${angleDelta.y > 0 ? "-" : "+"}1`);
-        } else if (y < screen.height / 2 && Config.bar.scrollActions.volume) {
-            // Volume scroll on top half
-            if (angleDelta.y > 0)
-                Audio.incrementVolume();
-            else if (angleDelta.y < 0)
-                Audio.decrementVolume();
-        } else if (Config.bar.scrollActions.brightness) {
-            // Brightness scroll on bottom half
-            const monitor = Brightness.getMonitorForScreen(screen);
-            if (angleDelta.y > 0)
-                monitor.setBrightness(monitor.brightness + GlobalConfig.services.brightnessIncrement);
-            else if (angleDelta.y < 0)
-                monitor.setBrightness(monitor.brightness - GlobalConfig.services.brightnessIncrement);
+                Hypr.dispatch(`workspace r${angleDelta.y > 0 ? "-" : "+"}1`);
         }
     }
 
@@ -115,8 +99,8 @@ ColumnLayout {
 
             DelegateChoice {
                 roleValue: "spacer"
-                delegate: EntryWrapper {
-                    Layout.fillHeight: true
+                delegate: WrappedLoader {
+                    Layout.fillWidth: enabled
                 }
             }
             DelegateChoice {
@@ -139,12 +123,10 @@ ColumnLayout {
             }
             DelegateChoice {
                 roleValue: "activeWindow"
-                delegate: EntryWrapper {
-                    ActiveWindow {
-                        objectName: "taskbarActiveWindow"
-                        bar: root
-                        monitor: Brightness.getMonitorForScreen(root.screen)
-                    }
+                delegate: WrappedLoader {
+                    id: "activeWindow"
+                    active: false
+                    visible: false
                 }
             }
             DelegateChoice {
@@ -189,12 +171,30 @@ ColumnLayout {
         default property Item item
         readonly property string entryId: modelData.id
 
-        Layout.topMargin: index === 0 ? root.vPadding : 0
-        Layout.bottomMargin: index === repeater.count - 1 ? root.vPadding : 0
-        Layout.alignment: Qt.AlignHCenter
+        function findFirstEnabled(): Item {
+            const count = repeater.count;
+            for (let i = 0; i < count; i++) {
+                const item = repeater.itemAt(i);
+                if (item?.enabled)
+                    return item;
+            }
+            return null;
+        }
 
-        implicitWidth: item?.implicitWidth ?? 0
-        implicitHeight: item?.implicitHeight ?? 0
+        function findLastEnabled(): Item {
+            for (let i = repeater.count - 1; i >= 0; i--) {
+                const item = repeater.itemAt(i);
+                if (item?.enabled)
+                    return item;
+            }
+            return null;
+        }
+
+        asynchronous: true
+        Layout.alignment: Qt.AlignVCenter
+
+        Layout.leftMargin: findFirstEnabled() === this ? root.hPadding : 0
+        Layout.rightMargin: findLastEnabled() === this ? root.hPadding : 0
 
         children: item
     }

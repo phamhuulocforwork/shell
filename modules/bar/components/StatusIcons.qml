@@ -14,35 +14,29 @@ StyledRect {
     id: root
 
     property color colour: Colours.palette.m3secondary
-    readonly property alias items: iconColumn
+    readonly property alias items: iconRow
 
     color: Colours.tPalette.m3surfaceContainer
     radius: Tokens.rounding.full
 
     clip: true
-    implicitWidth: Tokens.sizes.bar.innerWidth
-    implicitHeight: iconColumn.implicitHeight + Tokens.padding.medium * 2 - (Config.bar.status.showLockStatus && !Hypr.capsLock && !Hypr.numLock ? iconColumn.spacing : 0)
+    implicitHeight: Tokens.sizes.bar.innerHeight
+    implicitWidth: iconRow.implicitWidth + Tokens.padding.larger * 2
 
-    ColumnLayout {
-        id: iconColumn
+    RowLayout {
+        id: iconRow
 
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: Tokens.padding.medium
+        anchors.centerIn: parent
 
-        spacing: Tokens.spacing.medium / 2
+        spacing: Tokens.spacing.smaller
 
-        // Lock keys status
         WrappedLoader {
             name: "lockstatus"
             active: Config.bar.status.showLockStatus
 
-            sourceComponent: ColumnLayout {
-                spacing: 0
+            sourceComponent: RowLayout {
 
                 Item {
-                    implicitWidth: capslockIcon.implicitWidth
                     implicitHeight: Hypr.capsLock ? capslockIcon.implicitHeight : 0
 
                     MaterialIcon {
@@ -67,13 +61,13 @@ StyledRect {
                         }
                     }
 
-                    Behavior on implicitHeight {
+                    Behavior on implicitWidth {
                         Anim {}
                     }
                 }
 
                 Item {
-                    Layout.topMargin: Hypr.capsLock && Hypr.numLock ? iconColumn.spacing : 0
+                    Layout.leftMargin: Hypr.capsLock && Hypr.numLock ? iconRow.spacing : 0
 
                     implicitWidth: numlockIcon.implicitWidth
                     implicitHeight: Hypr.numLock ? numlockIcon.implicitHeight : 0
@@ -100,14 +94,13 @@ StyledRect {
                         }
                     }
 
-                    Behavior on implicitHeight {
+                    Behavior on implicitWidth {
                         Anim {}
                     }
                 }
             }
         }
 
-        // Audio icon
         WrappedLoader {
             name: "audio"
             active: Config.bar.status.showAudio
@@ -119,7 +112,6 @@ StyledRect {
             }
         }
 
-        // Microphone icon
         WrappedLoader {
             name: "audio"
             active: Config.bar.status.showMicrophone
@@ -131,7 +123,6 @@ StyledRect {
             }
         }
 
-        // Keyboard layout icon
         WrappedLoader {
             name: "kblayout"
             active: Config.bar.status.showKbLayout
@@ -144,7 +135,6 @@ StyledRect {
             }
         }
 
-        // Network icon
         WrappedLoader {
             name: "network"
             active: Config.bar.status.showNetwork && (!Nmcli.activeEthernet || Config.bar.status.showWifi)
@@ -156,7 +146,6 @@ StyledRect {
             }
         }
 
-        // Ethernet icon
         WrappedLoader {
             name: "ethernet"
             active: Config.bar.status.showNetwork && Nmcli.activeEthernet
@@ -168,17 +157,15 @@ StyledRect {
             }
         }
 
-        // Bluetooth section
         WrappedLoader {
-            Layout.preferredHeight: implicitHeight
+            Layout.preferredWidth: implicitWidth
 
             name: "bluetooth"
             active: Config.bar.status.showBluetooth
 
-            sourceComponent: ColumnLayout {
-                spacing: Tokens.spacing.medium / 2
+            sourceComponent: RowLayout {
+                spacing: Tokens.spacing.smaller / 2
 
-                // Bluetooth icon
                 MaterialIcon {
                     animate: true
                     text: {
@@ -191,7 +178,6 @@ StyledRect {
                     color: root.colour
                 }
 
-                // Connected bluetooth devices
                 Repeater {
                     model: ScriptModel {
                         values: Bluetooth.devices.values.filter(d => d.state !== BluetoothDeviceState.Disconnected) // qmllint disable unresolved-type
@@ -229,12 +215,11 @@ StyledRect {
                 }
             }
 
-            Behavior on Layout.preferredHeight {
+            Behavior on Layout.preferredWidth {
                 Anim {}
             }
         }
 
-        // Battery icon
         WrappedLoader {
             name: "battery"
             active: Config.bar.status.showBattery
@@ -261,7 +246,7 @@ StyledRect {
         required property string name
 
         asynchronous: true
-        Layout.alignment: Qt.AlignHCenter
+        Layout.alignment: Qt.AlignVCenter
         visible: active
     }
 }

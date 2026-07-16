@@ -11,24 +11,17 @@ Item {
     id: root
 
     required property PopoutState popouts
-    readonly property Popout currentPopout: content.children.find(c => c.shouldBeActive) ?? null
+    readonly property Popout currentPopout: content.children.find(c => c.shouldBeActive && !c.isExiting) ?? null
     readonly property Item current: currentPopout?.item ?? null
 
-    implicitWidth: (currentPopout?.implicitWidth ?? 0) + Tokens.padding.extraLargeIncreased
-    implicitHeight: (currentPopout?.implicitHeight ?? 0) + Tokens.padding.extraLargeIncreased
+    implicitWidth: currentPopout ? (currentPopout.implicitWidth + Tokens.padding.large * 2) : 0
+    implicitHeight: currentPopout ? (currentPopout.implicitHeight + Tokens.padding.large * 2) : 0
 
     Item {
         id: content
 
         anchors.fill: parent
         anchors.margins: Tokens.padding.large
-
-        Popout {
-            name: "activewindow"
-            sourceComponent: ActiveWindow {
-                popouts: root.popouts
-            }
-        }
 
         Popout {
             id: networkPopout
@@ -168,6 +161,7 @@ Item {
 
         required property string name
         readonly property bool shouldBeActive: root.popouts.currentName === name
+        property bool isExiting: false
 
         anchors.centerIn: parent
 
@@ -181,6 +175,8 @@ Item {
             PropertyChanges {
                 popout.active: true
                 popout.opacity: 1
+                popout.scale: 1
+                popout.isExiting: false
             }
         }
 
@@ -195,6 +191,12 @@ Item {
                         type: Anim.DefaultEffects
                     }
                     PropertyAction {
+                        target: popout
+                        property: "isExiting"
+                        value: true
+                    }
+                    PropertyAction {
+                        target: popout
                         property: "active"
                     }
                 }

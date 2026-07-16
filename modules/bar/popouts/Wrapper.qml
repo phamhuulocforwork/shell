@@ -7,8 +7,7 @@ import Quickshell.Wayland
 import Caelestia.Config
 import qs.components
 import qs.services
-import qs.modules.nexus
-import qs.modules.windowinfo
+import qs.modules.controlcenter
 
 Item {
     id: root
@@ -17,8 +16,7 @@ Item {
     required property real offsetScale
 
     readonly property alias content: content
-    readonly property alias winfo: winfo
-    readonly property alias nexus: nexus
+    readonly property alias controlCenter: controlCenter
 
     readonly property real nonAnimWidth: children.find(c => c.shouldBeActive)?.implicitWidth ?? content.implicitWidth
     readonly property real nonAnimHeight: children.find(c => c.shouldBeActive)?.implicitHeight ?? content.implicitHeight
@@ -32,11 +30,9 @@ Item {
     property string detachedMode
     property string queuedMode
 
-    // Dummy object so Tokens attached prop resolves to global config
-    // Anim configs are not per-monitor
     readonly property QtObject dummy: QtObject {}
     property int animLength: dummy.Tokens.anim.durations.expressiveDefaultSpatial
-    property var animCurve: dummy.Tokens.anim.expressiveDefaultSpatial // The easingCurve type is Qt 6.11+ so we gotta use var for now
+    property var animCurve: dummy.Tokens.anim.expressiveDefaultSpatial
 
     function setAnims(detach: bool): void {
         const type = `expressive${detach ? "Slow" : "Default"}Spatial`;
@@ -46,12 +42,8 @@ Item {
 
     function detach(mode: string): void {
         setAnims(true);
-        if (mode === "winfo") {
-            detachedMode = mode;
-        } else {
-            queuedMode = mode;
-            detachedMode = "any";
-        }
+        queuedMode = mode;
+        detachedMode = "any";
         setAnims(false);
         focus = true;
     }
@@ -66,7 +58,6 @@ Item {
 
     focus: hasCurrent
     Keys.onEscapePressed: {
-        // Forward escape to password popout if active, otherwise close
         if (currentName === "wirelesspassword" && content.item) {
             const passwordPopout = (content.item as Content)?.children.find(c => c.name === "wirelesspassword");
             if (passwordPopout && passwordPopout.item) {
@@ -78,7 +69,6 @@ Item {
     }
 
     Keys.onPressed: event => {
-        // Don't intercept keys when password popout is active - let it handle them
         if (currentName === "wirelesspassword") {
             event.accepted = false;
         }
@@ -116,19 +106,7 @@ Item {
     }
 
     Comp {
-        id: winfo
-
-        shouldBeActive: root.detachedMode === "winfo"
-        anchors.centerIn: parent
-
-        sourceComponent: WindowInfo {
-            screen: root.screen
-            client: Hypr.activeToplevel
-        }
-    }
-
-    Comp {
-        id: nexus
+        id: controlCenter
 
         shouldBeActive: root.detachedMode === "any"
         anchors.centerIn: parent
@@ -174,7 +152,6 @@ Item {
         active: false
         opacity: 0
 
-        // Makes the loader load on the same frame shouldBeActive becomes true, which ensures size is set
         states: State {
             name: "active"
             when: comp.shouldBeActive

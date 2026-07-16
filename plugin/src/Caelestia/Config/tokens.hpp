@@ -159,8 +159,7 @@ class BarTokens : public ConfigObject {
     Q_OBJECT
     QML_ANONYMOUS
 
-    CONFIG_PROPERTY(int, innerWidth, 40)
-    CONFIG_PROPERTY(int, windowPreviewSize, 400)
+    CONFIG_PROPERTY(int, innerHeight, 40)
     CONFIG_PROPERTY(int, trayMenuWidth, 300)
     CONFIG_PROPERTY(int, batteryWidth, 250)
     CONFIG_PROPERTY(int, networkWidth, 320)
@@ -299,19 +298,7 @@ public:
         : ConfigObject(parent) {}
 };
 
-class WInfoTokens : public ConfigObject {
-    Q_OBJECT
-    QML_ANONYMOUS
-
-    CONFIG_PROPERTY(qreal, heightMult, 0.7)
-    CONFIG_PROPERTY(qreal, detailsWidth, 500)
-
-public:
-    explicit WInfoTokens(QObject* parent = nullptr)
-        : ConfigObject(parent) {}
-};
-
-class NexusTokens : public ConfigObject {
+class ControlCenterTokens : public ConfigObject {
     Q_OBJECT
     QML_ANONYMOUS
 
@@ -344,8 +331,7 @@ class SizeTokens : public ConfigObject {
     CONFIG_SUBOBJECT(SidebarTokens, sidebar)
     CONFIG_SUBOBJECT(UtilitiesTokens, utilities)
     CONFIG_SUBOBJECT(LockTokens, lock)
-    CONFIG_SUBOBJECT(WInfoTokens, winfo)
-    CONFIG_SUBOBJECT(NexusTokens, nexus)
+    CONFIG_SUBOBJECT(ControlCenterTokens, controlCenter)
 
 public:
     explicit SizeTokens(QObject* parent = nullptr)
@@ -359,8 +345,7 @@ public:
         , m_sidebar(new SidebarTokens(this))
         , m_utilities(new UtilitiesTokens(this))
         , m_lock(new LockTokens(this))
-        , m_winfo(new WInfoTokens(this))
-        , m_nexus(new NexusTokens(this)) {}
+        , m_controlCenter(new ControlCenterTokens(this)) {}
 };
 
 class TokenConfig : public RootConfig {

@@ -165,7 +165,7 @@ StyledRect {
 
                         sourceComponent: ColouredIcon {
                             anchors.fill: parent
-                            source: Quickshell.iconPath(root.modelData.appIcon)
+                            source: Icons.resolveAppIcon(root.modelData.appIcon)
                             colour: root.modelData.urgency === NotificationUrgency.Critical ? Colours.palette.m3onError : root.modelData.urgency === NotificationUrgency.Low ? Colours.palette.m3onSurface : Colours.palette.m3onSecondaryContainer
                             layer.enabled: root.modelData.appIcon.endsWith("symbolic")
                         }

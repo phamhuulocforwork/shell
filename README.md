@@ -700,7 +700,16 @@ For example, to disable the bar on DP-1:
         "enabled": true,
         "hideDelay": 2000,
         "enableBrightness": true,
-        "enableMicrophone": false
+        "enableMicrophone": false,
+        "hideDelay": 2000
+    },
+    "paths": {
+        "mediaGif": "root:/assets/bongocat.gif",
+        "sessionGif": "root:/assets/lizard.gif",
+        "noNotifsPic": "root:/assets/dino.png",
+        "lockNoNotifsPic": "root:/assets/dino.png",
+        "wallpaperDir": "~/Pictures/Wallpapers",
+        "lyricsDir": "~/Music/lyrics"
     },
     "services": {
         "weatherLocation": "",

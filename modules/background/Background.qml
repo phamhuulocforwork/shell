@@ -20,7 +20,7 @@ Variants {
         name: "background"
         WlrLayershell.exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: contentItem.Config.background.wallpaperEnabled ? WlrLayer.Background : WlrLayer.Bottom
-        color: contentItem.Config.background.wallpaperEnabled ? "black" : "transparent"
+        color: contentItem.Config.background.wallpaperEnabled ? "white" : "transparent"
         surfaceFormat.opaque: false
 
         anchors.top: true
@@ -63,8 +63,8 @@ Variants {
             asynchronous: true
             active: Config.background.desktopClock.enabled
 
-            anchors.margins: Tokens.padding.extraLargeIncreased
-            anchors.leftMargin: Tokens.padding.extraLargeIncreased + Tokens.sizes.bar.innerWidth + Math.max(Tokens.padding.small, Config.border.thickness)
+            anchors.margins: Tokens.padding.large * 2
+            anchors.topMargin: Tokens.padding.large * 2 + Tokens.sizes.bar.innerHeight + Math.max(Tokens.padding.smaller, Config.border.thickness)
 
             state: Config.background.desktopClock.position
             states: [

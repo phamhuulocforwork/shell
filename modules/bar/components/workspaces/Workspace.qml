@@ -8,7 +8,7 @@ import qs.components
 import qs.services
 import qs.utils
 
-ColumnLayout {
+RowLayout {
     id: root
 
     required property int index
@@ -16,24 +16,23 @@ ColumnLayout {
     required property var occupied
     required property int groupOffset
 
-    readonly property bool isWorkspace: true // Flag for finding workspace children
-    // Unanimated prop for others to use as reference
-    readonly property int size: implicitHeight + (hasWindows ? Tokens.padding.extraSmall : 0)
+    readonly property bool isWorkspace: true
+    readonly property int size: implicitWidth + (hasWindows ? Tokens.padding.small : 0)
 
     readonly property int ws: groupOffset + index + 1
     readonly property bool isOccupied: occupied[ws] ?? false
     readonly property bool hasWindows: isOccupied && Config.bar.workspaces.showWindows
 
-    Layout.alignment: Qt.AlignHCenter
-    Layout.preferredHeight: size
+    Layout.alignment: Qt.AlignVCenter
+    Layout.preferredWidth: size
 
     spacing: 0
 
     StyledText {
         id: indicator
 
-        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-        Layout.preferredHeight: Tokens.sizes.bar.innerWidth - Tokens.padding.small
+        Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        Layout.preferredWidth: Tokens.sizes.bar.innerHeight - Tokens.padding.small * 2
 
         animate: true
         text: {
@@ -52,7 +51,7 @@ ColumnLayout {
         }
         color: Config.bar.workspaces.occupiedBg || root.isOccupied || root.activeWsId === root.ws ? Colours.palette.m3onSurface : Colours.layer(Colours.palette.m3outlineVariant, 2)
         verticalAlignment: Qt.AlignVCenter
-        font.family: Tokens.font.workspaces
+        horizontalAlignment: Qt.AlignHCenter
     }
 
     Loader {
@@ -60,14 +59,14 @@ ColumnLayout {
 
         asynchronous: true
 
-        Layout.alignment: Qt.AlignHCenter
-        Layout.fillHeight: true
-        Layout.topMargin: -Tokens.sizes.bar.innerWidth / 10
+        Layout.alignment: Qt.AlignVCenter
+        Layout.fillWidth: true
+        Layout.leftMargin: -Tokens.sizes.bar.innerHeight / 10
 
         visible: active
         active: root.hasWindows
 
-        sourceComponent: Column {
+        sourceComponent: Row {
             spacing: 0
 
             add: Transition {
@@ -111,7 +110,7 @@ ColumnLayout {
         }
     }
 
-    Behavior on Layout.preferredHeight {
+    Behavior on Layout.preferredWidth {
         Anim {}
     }
 }

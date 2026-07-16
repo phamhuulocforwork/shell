@@ -7,6 +7,7 @@ import Quickshell.Widgets
 import Caelestia.Config
 import qs.components
 import qs.services
+import qs.utils
 
 StackView {
     id: root
@@ -14,8 +15,8 @@ StackView {
     required property PopoutState popouts
     required property QsMenuHandle trayItem
 
-    implicitWidth: currentItem?.implicitWidth ?? 0
-    implicitHeight: currentItem?.implicitHeight ?? 0
+    implicitWidth: root.popouts.hasCurrent ? (currentItem?.implicitWidth ?? 0) : 0
+    implicitHeight: root.popouts.hasCurrent ? (currentItem?.implicitHeight ?? 0) : 0
 
     initialItem: SubMenu {
         handle: root.trayItem
@@ -126,13 +127,13 @@ StackView {
                             asynchronous: true
                             anchors.left: parent.left
 
-                            active: item.modelData.icon !== ""
+                            active: Icons.getTrayMenuIcon(item.modelData.icon) !== ""
 
                             sourceComponent: IconImage {
                                 asynchronous: true
                                 implicitSize: label.implicitHeight
 
-                                source: item.modelData.icon
+                                source: Icons.getTrayMenuIcon(item.modelData.icon)
                             }
                         }
 

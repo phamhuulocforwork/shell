@@ -229,6 +229,40 @@ Singleton {
         return name[0].toUpperCase();
     }
 
+    function getTrayMenuIcon(icon: string): string {
+        if (!icon)
+            return "";
+
+        if (icon.includes("?path=")) {
+            const [name, path] = icon.split("?path=");
+            return Qt.resolvedUrl(`${path}/${name.slice(name.lastIndexOf("/") + 1)}`);
+        }
+
+        if (icon.startsWith("image://") || icon.startsWith("file:") ||
+            icon.startsWith("qrc:") || icon.startsWith("http://") || icon.startsWith("https://") ||
+            icon.startsWith("data:") || icon.startsWith("/"))
+            return icon;
+
+        return Quickshell.iconPath(icon, true);
+    }
+
+    function resolveAppIcon(icon: string): string {
+        if (!icon)
+            return "";
+
+        if (icon.includes("?path=")) {
+            const [name, path] = icon.split("?path=");
+            return Qt.resolvedUrl(`${path}/${name.slice(name.lastIndexOf("/") + 1)}`);
+        }
+
+        if (icon.startsWith("image://") || icon.startsWith("file:") ||
+            icon.startsWith("qrc:") || icon.startsWith("http://") || icon.startsWith("https://") ||
+            icon.startsWith("data:") || icon.startsWith("/"))
+            return icon;
+
+        return Quickshell.iconPath(icon);
+    }
+
     function getTrayIcon(id: string, icon: string): string {
         for (const sub of GlobalConfig.bar.tray.iconSubs)
             if (sub.id === id)
