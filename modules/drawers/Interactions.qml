@@ -24,26 +24,26 @@ CustomMouseArea {
     property bool utilitiesShortcutActive
 
     function withinPanelHeight(panel: Item, x: real, y: real): bool {
-        const panelY = root.borderThickness + panel.y;
+        const panelY = bar.implicitHeight + panel.y;
         return y >= panelY - Config.border.rounding && y <= panelY + panel.height + Config.border.rounding;
     }
 
     function withinPanelWidth(panel: Item, x: real, y: real): bool {
-        const panelX = bar.implicitWidth + panel.x;
+        const panelX = root.borderThickness + panel.x;
         return x >= panelX - Config.border.rounding && x <= panelX + panel.width + Config.border.rounding;
     }
 
-    function inLeftPanel(panel: Item, x: real, y: real): bool {
-        return x < bar.implicitWidth + panel.x + panel.width && withinPanelHeight(panel, x, y);
+    function inBarPanel(panel: Item, x: real, y: real): bool {
+        return y < bar.implicitHeight + panel.y + panel.height && withinPanelWidth(panel, x, y);
     }
 
     function inRightPanel(panel: Item, x: real, y: real): bool {
-        return x > Math.min(width - Config.border.minThickness, bar.implicitWidth + panel.x) && withinPanelHeight(panel, x, y);
+        return x > Math.min(width - Config.border.minThickness, root.borderThickness + panel.x) && withinPanelHeight(panel, x, y);
     }
 
     function inTopPanel(panel: Item, x: real, y: real): bool {
         const panelHeight = panel.height * (1 - (panel.offsetScale ?? 0)); // qmllint disable missing-property
-        return y < Math.max(Config.border.minThickness, Config.border.thickness + panelHeight) && withinPanelWidth(panel, x, y);
+        return y < Math.max(Config.border.minThickness, bar.implicitHeight + panelHeight) && withinPanelWidth(panel, x, y);
     }
 
     function inBottomPanel(panel: Item, x: real, y: real, isCorner = false): bool {
@@ -54,8 +54,8 @@ CustomMouseArea {
     function onWheel(event: WheelEvent): void {
         if (fullscreen)
             return;
-        if (event.x < bar.implicitWidth) {
-            bar.handleWheel(event.y, event.angleDelta);
+        if (event.y < bar.implicitHeight) {
+            bar.handleWheel(event.x, event.angleDelta);
         }
     }
 
@@ -106,14 +106,14 @@ CustomMouseArea {
         }
 
         // Show bar in non-exclusive mode on hover
-        if (!screenState.bar && Config.bar.showOnHover && x < bar.clampedWidth)
+        if (!screenState.bar && Config.bar.showOnHover && y < bar.clampedHeight)
             bar.isHovered = true;
 
         // Show/hide bar on drag
-        if (pressed && dragStart.x < bar.clampedWidth) {
-            if (dragX > Config.bar.dragThreshold)
+        if (pressed && dragStart.y < bar.clampedHeight) {
+            if (dragY > Config.bar.dragThreshold)
                 screenState.bar = true;
-            else if (dragX < -Config.bar.dragThreshold)
+            else if (dragY < -Config.bar.dragThreshold)
                 screenState.bar = false;
         }
 
@@ -131,12 +131,12 @@ CustomMouseArea {
                 root.panels.osd.hovered = true;
             }
 
-            const showSidebar = pressed && dragStart.x > Math.min(width - Config.border.minThickness, bar.implicitWidth + panels.sidebar.x);
+            const showSidebar = pressed && dragStart.x > Math.min(width - Config.border.minThickness, borderThickness + panels.sidebar.x);
 
             // Show sidebar on hover (top-right corner, bounded by notification panel height)
             if (Config.sidebar.showOnHover) {
-                const sidebarTriggerY = Math.max(Config.sidebar.minHoverThreshold, panels.notifications.y + panels.notifications.height + borderThickness);
-                const showSidebarHover = x > Math.min(width - Config.border.minThickness, bar.implicitWidth + panels.sidebar.x) && y <= sidebarTriggerY;
+                const sidebarTriggerY = Math.max(Config.sidebar.minHoverThreshold, panels.notifications.y + panels.notifications.height + bar.implicitHeight);
+                const showSidebarHover = x > Math.min(width - Config.border.minThickness, borderThickness + panels.sidebar.x) && y <= sidebarTriggerY;
                 if (showSidebarHover && !screenState.sidebar)
                     screenState.sidebar = true;
             }
@@ -180,8 +180,8 @@ CustomMouseArea {
 
             // Show/hide sidebar on hover
             if (Config.sidebar.showOnHover && !pressed) {
-                const sidebarTriggerY = Math.max(Config.sidebar.minHoverThreshold, panels.notifications.y + panels.notifications.height + borderThickness);
-                const showSidebarHover = x > Math.min(width - Config.border.minThickness, bar.implicitWidth + panels.sidebar.x) && y <= sidebarTriggerY;
+                const sidebarTriggerY = Math.max(Config.sidebar.minHoverThreshold, panels.notifications.y + panels.notifications.height + bar.implicitHeight);
+                const showSidebarHover = x > Math.min(width - Config.border.minThickness, borderThickness + panels.sidebar.x) && y <= sidebarTriggerY;
                 if (showSidebarHover && !screenState.sidebar) {
                     screenState.sidebar = true;
                 } else {
@@ -238,9 +238,9 @@ CustomMouseArea {
         }
 
         // Show popouts on hover
-        if (x < bar.implicitWidth) {
-            bar.checkPopout(y);
-        } else if ((!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1) && !inLeftPanel(panels.popoutsWrapper, x, y)) {
+        if (y < bar.implicitHeight) {
+            bar.checkPopout(x);
+        } else if ((!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1) && !inBarPanel(panels.popoutsWrapper, x, y)) {
             popouts.hasCurrent = false;
             bar.closeTray();
         }
