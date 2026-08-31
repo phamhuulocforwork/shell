@@ -16,7 +16,7 @@ fi
 pkill -x qs 2>/dev/null || true
 sleep 1
 setsid env QT_QPA_PLATFORMTHEME=gtk3 \
-	qs -p "$HOME/.config/quickshell/caelestia/shell.qml" -n -d \
+	qs -c caelestia -d \
 	> /tmp/qs-fork-test.log 2>&1 < /dev/null &
 sleep 5
 echo "errors: $(grep -icE 'error|exception' /tmp/qs-fork-test.log)"
