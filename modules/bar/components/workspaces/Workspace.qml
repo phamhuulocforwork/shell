@@ -9,7 +9,7 @@ import qs.components
 import qs.services
 import qs.utils
 
-ColumnLayout {
+RowLayout {
     id: root
 
     required property int index
@@ -19,7 +19,7 @@ ColumnLayout {
 
     readonly property bool isWorkspace: true // Flag for finding workspace children
     // Unanimated prop for others to use as reference
-    readonly property int size: implicitHeight + (hasWindows ? Tokens.padding.extraSmall : 0)
+    readonly property int size: implicitWidth + (hasWindows ? Tokens.padding.extraSmall : 0)
 
     readonly property int ws: groupOffset + index + 1
     readonly property bool isOccupied: occupied[ws] ?? false
@@ -38,8 +38,8 @@ ColumnLayout {
             shape.shape = Qt.binding(() => isOccupied ? MaterialShape.Square : MaterialShape.Circle);
     }
 
-    Layout.alignment: Qt.AlignHCenter
-    Layout.preferredHeight: size
+    Layout.alignment: Qt.AlignVCenter
+    Layout.preferredWidth: size
 
     spacing: 0
 
@@ -49,9 +49,8 @@ ColumnLayout {
     Loader {
         id: indicator
 
-        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-        Layout.preferredHeight: Tokens.sizes.bar.innerWidth - Tokens.padding.small
-        sourceComponent: Config.bar.workspaces.displayType === BarWorkspaceDisplay.Text ? textComponent : shapeComponent
+        Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        Layout.preferredWidth: Tokens.sizes.bar.innerWidth - Tokens.padding.small
 
         onItemChanged: root.updateShape()
     }
@@ -121,14 +120,14 @@ ColumnLayout {
 
         asynchronous: true
 
-        Layout.alignment: Qt.AlignHCenter
-        Layout.fillHeight: true
-        Layout.topMargin: -Tokens.spacing.extraSmall / 2
+        Layout.alignment: Qt.AlignVCenter
+        Layout.fillWidth: true
+        Layout.leftMargin: -Tokens.sizes.bar.innerWidth / 10
 
         visible: active
         active: root.hasWindows
 
-        sourceComponent: Column {
+        sourceComponent: Row {
             spacing: 0
 
             add: Transition {
@@ -171,7 +170,7 @@ ColumnLayout {
         }
     }
 
-    Behavior on Layout.preferredHeight {
+    Behavior on Layout.preferredWidth {
         Anim {}
     }
 }
