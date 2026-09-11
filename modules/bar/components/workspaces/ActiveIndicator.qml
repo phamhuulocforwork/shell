@@ -39,7 +39,7 @@ StyledRect {
     readonly property real trailEnd: {
         workspaces.count;
         const ws = workspaces.itemAt(trailWsIdx) as Workspace;
-        return ws ? ws.y + ws.height : 0;
+        return ws ? ws.x + ws.width : 0;
     }
     property bool clampTrailEnd: false
 
@@ -54,7 +54,7 @@ StyledRect {
             return 0;
 
         const ws = workspaces.itemAt(index) as Workspace;
-        return ws ? (switchWsIdx >= 0 ? ws.targetY : ws.y) : 0;
+        return ws ? (switchWsIdx >= 0 ? ws.targetX : ws.x) : 0;
     }
 
     function updateCurrentWorkspace(withAnimation: bool): void {
@@ -66,7 +66,7 @@ StyledRect {
 
         if (withAnimation) {
             trailWsIdx = currentWsIdx;
-            clampTrailEnd = !!nextWorkspace && nextWorkspace.targetY <= offset;
+            clampTrailEnd = !!nextWorkspace && nextWorkspace.targetX <= offset;
             workspaceSwitchRunning = true;
             switchWsIdx = nextIndex;
             currentWsId = activeWsId;
@@ -98,9 +98,9 @@ StyledRect {
     }
 
     clip: true
-    y: offset + mask.y
-    implicitWidth: Tokens.sizes.bar.innerWidth - Tokens.padding.small
-    implicitHeight: size
+    x: offset + mask.x
+    implicitWidth: size
+    implicitHeight: Tokens.sizes.bar.innerWidth - Tokens.padding.small
     radius: Tokens.rounding.full
     color: Colours.palette.m3primary
 
@@ -114,12 +114,12 @@ StyledRect {
         sourceColor: Colours.palette.m3onSurface
         colorizationColor: Colours.palette.m3onPrimary
 
-        x: 0
-        y: -parent.offset
+        x: -parent.offset
+        y: 0
         implicitWidth: root.mask.implicitWidth
         implicitHeight: root.mask.implicitHeight
 
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
     }
 
     Behavior on leading {

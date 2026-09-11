@@ -9,7 +9,7 @@ import qs.components
 import qs.services
 import qs.utils
 
-ColumnLayout {
+RowLayout {
     id: root
 
     required property int index
@@ -23,7 +23,7 @@ ColumnLayout {
 
     readonly property bool isWorkspace: true // Flag for finding workspace children
     // Unanimated prop for others to use as reference
-    readonly property int size: implicitHeight + (hasWindows ? Tokens.padding.extraSmall : 0)
+    readonly property int size: implicitWidth + (hasWindows ? Tokens.padding.extraSmall : 0)
 
     readonly property int ws: groupOffset + index + 1
     readonly property bool isOccupied: occupied[ws] ?? false
@@ -44,7 +44,7 @@ ColumnLayout {
 
         return progress;
     }
-    readonly property real targetY: {
+    readonly property real targetX: {
         let offset = 0;
 
         for (let i = 0; i < index; ++i) {
@@ -70,9 +70,9 @@ ColumnLayout {
             shape.shape = Qt.binding(() => isOccupied ? MaterialShape.Square : MaterialShape.Circle);
     }
 
-    Layout.alignment: Qt.AlignHCenter
-    Layout.preferredHeight: animatedSize * revealProgress
-    Layout.topMargin: layoutSpacing * Math.min(revealProgress, precedingRevealProgress)
+    Layout.alignment: Qt.AlignVCenter
+    Layout.preferredWidth: animatedSize * revealProgress
+    Layout.leftMargin: layoutSpacing * Math.min(revealProgress, precedingRevealProgress)
 
     visible: shouldShow || revealProgress > 0
     opacity: revealProgress
@@ -86,9 +86,8 @@ ColumnLayout {
     Loader {
         id: indicator
 
-        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-        Layout.preferredHeight: Tokens.sizes.bar.innerWidth - Tokens.padding.small
-        sourceComponent: Config.bar.workspaces.displayType === BarWorkspaceDisplay.Text ? textComponent : shapeComponent
+        Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        Layout.preferredWidth: Tokens.sizes.bar.innerWidth - Tokens.padding.small
 
         onItemChanged: root.updateShape()
     }
@@ -158,14 +157,14 @@ ColumnLayout {
 
         asynchronous: true
 
-        Layout.alignment: Qt.AlignHCenter
-        Layout.fillHeight: true
-        Layout.topMargin: -Tokens.spacing.extraSmall / 2
+        Layout.alignment: Qt.AlignVCenter
+        Layout.fillWidth: true
+        Layout.leftMargin: -Tokens.sizes.bar.innerWidth / 10
 
         visible: active
         active: root.hasWindows
 
-        sourceComponent: Column {
+        sourceComponent: Row {
             spacing: 0
 
             add: Transition {

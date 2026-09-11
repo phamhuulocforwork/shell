@@ -13,7 +13,7 @@ StyledRect {
     id: root
 
     property color colour: Colours.palette.m3secondary
-    readonly property alias items: iconColumn
+    readonly property alias items: iconRow
 
     readonly property int spacing: Tokens.spacing.medium / 2
 
@@ -44,16 +44,16 @@ StyledRect {
     radius: Tokens.rounding.full
 
     clip: true
-    implicitWidth: Tokens.sizes.bar.innerWidth
-    implicitHeight: iconColumn.implicitHeight + Tokens.padding.medium * 2
+    implicitWidth: iconRow.implicitWidth + Tokens.padding.medium * 2
+    implicitHeight: Tokens.sizes.bar.innerWidth
 
-    ColumnLayout {
-        id: iconColumn
+    RowLayout {
+        id: iconRow
 
-        anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: Tokens.padding.medium
+        anchors.right: parent.right
+        anchors.rightMargin: Tokens.padding.medium
 
         spacing: 0
 
@@ -151,27 +151,27 @@ StyledRect {
         required property int index
         property int margin: root.spacing / 2
         readonly property bool present: !root.collapsed(modelData)
-        property real topGap: present && index !== root.firstPresent ? margin : 0
-        property real bottomGap: present && index !== root.lastPresent ? margin : 0
+        property real leftGap: present && index !== root.firstPresent ? margin : 0
+        property real rightGap: present && index !== root.lastPresent ? margin : 0
         default property Item item
         property string name: modelData.id.toLowerCase()
 
-        Layout.topMargin: Math.round(topGap)
-        Layout.bottomMargin: Math.round(bottomGap)
-        Layout.alignment: Qt.AlignHCenter
+        Layout.leftMargin: Math.round(leftGap)
+        Layout.rightMargin: Math.round(rightGap)
+        Layout.alignment: Qt.AlignVCenter
 
         implicitWidth: item?.implicitWidth ?? 0
         implicitHeight: item?.implicitHeight ?? 0
 
         children: item
 
-        Behavior on topGap {
+        Behavior on leftGap {
             Anim {
                 type: Anim.SlowEffects
             }
         }
 
-        Behavior on bottomGap {
+        Behavior on rightGap {
             Anim {
                 type: Anim.SlowEffects
             }
