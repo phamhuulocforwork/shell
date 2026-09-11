@@ -34,7 +34,7 @@ Item {
             radius: Tokens.rounding.full
 
             gradient: Gradient {
-                orientation: Gradient.Horizontal
+                orientation: Gradient.Vertical
 
                 GradientStop {
                     position: 0
@@ -57,12 +57,12 @@ Item {
 
         Rectangle {
             anchors.top: parent.top
-            anchors.bottom: parent.bottom
             anchors.left: parent.left
+            anchors.right: parent.right
 
             radius: Tokens.rounding.full
-            implicitWidth: parent.width / 2
-            opacity: view.contentX > 0 ? 0 : 1
+            implicitHeight: parent.height / 2
+            opacity: view.contentY > 0 ? 0 : 1
 
             Behavior on opacity {
                 Anim {
@@ -72,13 +72,13 @@ Item {
         }
 
         Rectangle {
-            anchors.top: parent.top
             anchors.bottom: parent.bottom
+            anchors.left: parent.left
             anchors.right: parent.right
 
             radius: Tokens.rounding.full
-            implicitWidth: parent.width / 2
-            opacity: view.contentX < view.contentWidth - parent.width + Tokens.padding.extraSmall ? 0 : 1
+            implicitHeight: parent.height / 2
+            opacity: view.contentY < view.contentHeight - parent.height + Tokens.padding.extraSmall ? 0 : 1
 
             Behavior on opacity {
                 Anim {
@@ -91,6 +91,8 @@ Item {
     ListView {
         id: view
 
+        readonly property real centeredSize: (currentItem as SpecialWsDelegate)?.size ?? 0
+
         anchors.fill: parent
         spacing: Tokens.spacing.medium
         interactive: false
@@ -102,16 +104,17 @@ Item {
             values: Hypr.workspaces.values.filter(w => w.name.startsWith("special:") && (!GlobalConfig.bar.workspaces.perMonitorWorkspaces || w.monitor === root.monitor))
         }
 
-        preferredHighlightBegin: 0
-        preferredHighlightEnd: width
+        // Center the current delegate vertically instead of top-aligning at y=0
+        preferredHighlightBegin: height / 2 - centeredSize / 2
+        preferredHighlightEnd: height / 2 + centeredSize / 2
         highlightRangeMode: ListView.StrictlyEnforceRange
 
         highlightFollowsCurrentItem: false
         highlight: Item {
-            x: view.currentItem?.x ?? 0
-            implicitWidth: (view.currentItem as SpecialWsDelegate)?.size ?? 0
+            y: view.currentItem?.y ?? 0
+            implicitHeight: (view.currentItem as SpecialWsDelegate)?.size ?? 0
 
-            Behavior on x {
+            Behavior on y {
                 Anim {}
             }
         }
@@ -172,11 +175,11 @@ Item {
             StyledClippingRect {
                 id: indicator
 
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
 
-                x: (view.currentItem?.x ?? 0) - view.contentX
-                implicitWidth: (view.currentItem as SpecialWsDelegate)?.size ?? 0
+                y: (view.currentItem?.y ?? 0) - view.contentY
+                implicitHeight: (view.currentItem as SpecialWsDelegate)?.size ?? 0
 
                 color: Colours.palette.m3tertiary
                 radius: Tokens.rounding.full
@@ -186,21 +189,21 @@ Item {
                     sourceColor: Colours.palette.m3onSurface
                     colorizationColor: Colours.palette.m3onTertiary
 
-                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
 
-                    x: -indicator.x
-                    y: 0
+                    x: 0
+                    y: -indicator.y
                     implicitWidth: view.width
                     implicitHeight: view.height
                 }
 
-                Behavior on x {
+                Behavior on y {
                     Anim {
                         type: Anim.Emphasized
                     }
                 }
 
-                Behavior on implicitWidth {
+                Behavior on implicitHeight {
                     Anim {
                         type: Anim.Emphasized
                     }
@@ -210,19 +213,19 @@ Item {
     }
 
     MouseArea {
-        property real startX
+        property real startY
 
         anchors.fill: view
 
         drag.target: view.contentItem
-        drag.axis: Drag.XAxis
-        drag.maximumX: 0
-        drag.minimumX: Math.min(0, view.width - view.contentWidth - Tokens.padding.extraSmall)
+        drag.axis: Drag.YAxis
+        drag.maximumY: 0
+        drag.minimumY: Math.min(0, view.height - view.contentHeight - Tokens.padding.extraSmall)
 
-        onPressed: event => startX = event.x
+        onPressed: event => startY = event.y
 
         onClicked: event => {
-            if (Math.abs(event.x - startX) > drag.threshold)
+            if (Math.abs(event.y - startY) > drag.threshold)
                 return;
 
             const ws = view.itemAt(event.x, event.y) as SpecialWsDelegate;
@@ -233,17 +236,17 @@ Item {
         }
     }
 
-    component SpecialWsDelegate: RowLayout {
+    component SpecialWsDelegate: ColumnLayout {
         id: ws
 
         required property HyprlandWorkspace modelData
-        readonly property int size: label.Layout.preferredWidth + (hasWindows ? windows.implicitWidth + Tokens.padding.extraSmall : 0)
+        readonly property int size: label.Layout.preferredHeight + (hasWindows ? windows.implicitHeight + Tokens.padding.extraSmall : 0)
         property int wsId
         property string icon
         property bool hasWindows
 
-        anchors.top: view.contentItem.top
-        anchors.bottom: view.contentItem.bottom
+        anchors.left: view.contentItem.left
+        anchors.right: view.contentItem.right
 
         spacing: 0
 
@@ -287,8 +290,8 @@ Item {
 
             asynchronous: true
 
-            Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-            Layout.preferredWidth: Tokens.sizes.bar.innerWidth - Tokens.padding.small
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+            Layout.preferredWidth: Tokens.sizes.bar.innerWidth - Tokens.padding.small * 2
 
             sourceComponent: ws.icon.length === 1 ? letterComp : iconComp
 
@@ -317,14 +320,14 @@ Item {
 
             asynchronous: true
 
-            Layout.alignment: Qt.AlignVCenter
-            Layout.fillWidth: true
-            Layout.preferredWidth: implicitWidth
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillHeight: true
+            Layout.preferredHeight: implicitHeight
 
             visible: active
             active: ws.hasWindows
 
-            sourceComponent: Row {
+            sourceComponent: Column {
                 spacing: 0
 
                 add: Transition {
@@ -366,7 +369,7 @@ Item {
                 }
             }
 
-            Behavior on Layout.preferredWidth {
+            Behavior on Layout.preferredHeight {
                 Anim {}
             }
         }

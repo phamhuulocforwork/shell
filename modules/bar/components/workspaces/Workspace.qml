@@ -19,7 +19,7 @@ RowLayout {
 
     readonly property bool isWorkspace: true // Flag for finding workspace children
     // Unanimated prop for others to use as reference
-    readonly property int size: implicitWidth + (hasWindows ? Tokens.padding.extraSmall : 0)
+    readonly property int size: implicitWidth + (hasWindows ? Tokens.padding.small : 0)
 
     readonly property int ws: groupOffset + index + 1
     readonly property bool isOccupied: occupied[ws] ?? false
@@ -50,7 +50,10 @@ RowLayout {
         id: indicator
 
         Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-        Layout.preferredWidth: Tokens.sizes.bar.innerWidth - Tokens.padding.small
+        Layout.leftMargin: Tokens.padding.small
+        Layout.rightMargin: Tokens.spacing.small
+        // Empty ws: force square cell (with margins) so the pill is a circle
+        Layout.preferredWidth: root.hasWindows ? implicitWidth : Tokens.sizes.bar.innerWidth - Tokens.padding.extraSmall * 2 - Tokens.padding.small * 2
 
         onItemChanged: root.updateShape()
     }
@@ -75,44 +78,10 @@ RowLayout {
                 Anim {}
             }
         }
-    }
-
-    Component {
-        id: textComponent
-
-        StyledText {
-            animate: true
-            text: {
-                if (root.focused) {
-                    const label = Config.bar.workspaces.activeLabel;
-                    if (label)
-                        return label;
-                }
-
-                if (root.focused || root.isOccupied) {
-                    const label = Config.bar.workspaces.occupiedLabel;
-                    if (label)
-                        return label;
-                }
-
-                const label = Config.bar.workspaces.label;
-                if (label)
-                    return label;
-
-                const ws = Hypr.workspaces.values.find(w => w.id === root.ws);
-                const wsName = !ws || ws.name == root.ws ? root.ws : ws.name[0];
-
-                const capitalisation = Config.bar.workspaces.capitalisation;
-                if (capitalisation === BarWorkspaceCapitalisation.Upper)
-                    return wsName.toString().toUpperCase();
-                else if (capitalisation === BarWorkspaceCapitalisation.Lower)
-                    return wsName.toString().toLowerCase();
-                return wsName;
-            }
-            color: Config.bar.workspaces.occupiedBg || root.isOccupied || root.focused ? Colours.palette.m3onSurface : Colours.layer(Colours.palette.m3outlineVariant, 2)
-            verticalAlignment: Qt.AlignVCenter
-            font.family: Tokens.font.workspaces
-        }
+        color: Config.bar.workspaces.occupiedBg || root.isOccupied || root.activeWsId === root.ws ? Colours.palette.m3onSurface : Colours.layer(Colours.palette.m3outlineVariant, 2)
+        verticalAlignment: Qt.AlignVCenter
+        horizontalAlignment: Qt.AlignHCenter
+        font.family: Tokens.font.workspaces
     }
 
     Loader {

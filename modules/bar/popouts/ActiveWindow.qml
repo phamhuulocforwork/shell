@@ -82,19 +82,19 @@ Item {
             }
         }
 
-        ClippingWrapperRectangle {
-            color: "transparent"
-            radius: Tokens.rounding.medium
+        // ClippingWrapperRectangle {
+        //     color: "transparent"
+        //     radius: Tokens.rounding.medium
 
-            ScreencopyView {
-                id: preview
+        //     ScreencopyView {
+        //         id: preview
 
-                captureSource: Hypr.activeToplevel?.wayland ?? null // qmllint disable unresolved-type
-                live: visible
+        //         captureSource: Hypr.activeToplevel?.wayland ?? null // qmllint disable unresolved-type
+        //         live: visible
 
-                constraintSize.width: Tokens.sizes.bar.windowPreviewSize
-                constraintSize.height: Tokens.sizes.bar.windowPreviewSize
-            }
-        }
+        //         constraintSize.width: Tokens.sizes.bar.windowPreviewSize
+        //         constraintSize.height: Tokens.sizes.bar.windowPreviewSize
+        //     }
+        // }
     }
 }

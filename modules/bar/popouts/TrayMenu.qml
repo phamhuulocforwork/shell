@@ -8,6 +8,7 @@ import Caelestia.Config
 import Caelestia.I18n
 import qs.components
 import qs.services
+import qs.utils
 
 StackView {
     id: root
@@ -134,7 +135,7 @@ StackView {
                                 asynchronous: true
                                 implicitSize: label.implicitHeight
 
-                                source: item.modelData.icon
+                                source: Icons.getTrayMenuIcon(item.modelData.icon)
                             }
                         }
 

@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import qs.components
 import qs.services
 
-ColumnLayout {
+RowLayout {
     id: root
 
     required property color colour
@@ -34,7 +34,7 @@ ColumnLayout {
     }
 
     Item {
-        implicitWidth: capslockIcon.implicitWidth
+        implicitWidth: Math.round(root.capsHeight ? capslockIcon.implicitWidth : 0)
         implicitHeight: Math.round(root.capsHeight)
 
         MaterialIcon {
@@ -63,7 +63,7 @@ ColumnLayout {
     }
 
     Item {
-        implicitWidth: numlockIcon.implicitWidth
+        implicitWidth: Math.round(root.numHeight ? numlockIcon.implicitWidth : 0)
         implicitHeight: Math.round(root.numHeight)
 
         MaterialIcon {

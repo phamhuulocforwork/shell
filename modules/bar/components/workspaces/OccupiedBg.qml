@@ -66,7 +66,7 @@ Item {
 
             x: (start?.x ?? 0) - 1
             implicitWidth: start && end ? end.x + end.size - start.x + 2 : 0
-            implicitHeight: Tokens.sizes.bar.innerWidth - Tokens.padding.small + 2
+            implicitHeight: Tokens.sizes.bar.innerWidth - Tokens.padding.extraSmall * 2 + 2
 
             color: Colours.layer(Colours.palette.m3surfaceContainerHigh, 2)
             radius: Tokens.rounding.full
