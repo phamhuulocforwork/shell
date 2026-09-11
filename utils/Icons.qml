@@ -237,6 +237,46 @@ Singleton {
         return icon;
     }
 
+    function getTrayMenuIcon(icon: string): string {
+        if (!icon)
+            return "";
+
+        if (icon.includes("?path=")) {
+            const [name, path] = icon.split("?path=");
+            return Qt.resolvedUrl(`${path}/${name.slice(name.lastIndexOf("/") + 1)}`);
+        }
+
+        if (icon.startsWith("/"))
+            return `file://${icon}`;
+
+        if (icon.startsWith("image://") || icon.startsWith("file:") ||
+            icon.startsWith("qrc:") || icon.startsWith("http://") || icon.startsWith("https://") ||
+            icon.startsWith("data:"))
+            return icon;
+
+        return Quickshell.iconPath(icon, true);
+    }
+
+    function resolveAppIcon(icon: string, fallback = ""): string {
+        if (!icon)
+            return "";
+
+        if (icon.includes("?path=")) {
+            const [name, path] = icon.split("?path=");
+            return Qt.resolvedUrl(`${path}/${name.slice(name.lastIndexOf("/") + 1)}`);
+        }
+
+        if (icon.startsWith("/"))
+            return `file://${icon}`;
+
+        if (icon.startsWith("image://") || icon.startsWith("file:") ||
+            icon.startsWith("qrc:") || icon.startsWith("http://") || icon.startsWith("https://") ||
+            icon.startsWith("data:"))
+            return icon;
+
+        return Quickshell.iconPath(icon, fallback);
+    }
+
     function getBatteryIcon(percentage: real, charging = false): string {
         if (percentage === 1)
             return charging ? "battery_charging_full" : "battery_full";

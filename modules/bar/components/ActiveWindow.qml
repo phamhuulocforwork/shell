@@ -27,15 +27,14 @@ Item {
         return title;
     }
 
-    readonly property int maxWidth: {
-        const otherModules = bar.children.filter(c => c.entryId && c.item !== this && c.entryId !== "spacer");
-        const otherWidth = otherModules.reduce((acc, curr) => acc + (curr.item.nonAnimWidth ?? curr.width), 0);
-        // Length - 2 cause repeater counts as a child
-        return bar.width - otherWidth - bar.spacing * (bar.children.length - 1) - bar.hPadding * 2;
-    }
+    // Screen center expressed in root coordinates (parent is the EntryWrapper,
+    // a direct child of the bar RowLayout, so parent.x is bar-relative)
+    readonly property real screenCenterX: bar.width / 2 - (parent?.x ?? 0)
+
     property Title current: text1
 
     clip: true
+    width: parent?.width ?? implicitWidth
     implicitWidth: Math.max(icon.implicitWidth, current.implicitWidth)
     implicitHeight: icon.implicitHeight
 
@@ -58,30 +57,45 @@ Item {
                     popouts.hasCurrent = false;
                 } else {
                     popouts.currentName = "activewindow";
-                    popouts.currentCenter = root.mapToItem(root.bar, root.implicitWidth / 2, 0).x;
+                    popouts.currentCenter = root.bar.width / 2;
                     popouts.hasCurrent = true;
                 }
             }
         }
     }
 
-    MaterialIcon {
-        id: icon
+    Item {
+        id: content
 
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.left: parent.left
+        x: root.screenCenterX - width / 2
+        width: icon.width + Tokens.spacing.small + current.implicitWidth
+        height: parent.height
 
-        animate: true
-        text: Icons.getAppCategoryIcon(Hypr.activeToplevel?.lastIpcObject.class, "desktop_windows")
-        color: root.colour
-    }
+        // Glide to the new center instead of jumping while titles crossfade
+        Behavior on x {
+            Anim {
+                type: Anim.Emphasized
+            }
+        }
 
-    Title {
-        id: text1
-    }
+        MaterialIcon {
+            id: icon
 
-    Title {
-        id: text2
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+
+            animate: true
+            text: Icons.getAppCategoryIcon(Hypr.activeToplevel?.lastIpcObject.class, "desktop_windows")
+            color: root.colour
+        }
+
+        Title {
+            id: text1
+        }
+
+        Title {
+            id: text2
+        }
     }
 
     TextMetrics {
@@ -90,7 +104,7 @@ Item {
         text: root.windowTitle
         font: root.Tokens.font.body.builders.small.letterSpacing(1.4).build()
         elide: Qt.ElideRight
-        elideWidth: Math.max(0, root.maxWidth - icon.width - Tokens.spacing.small)
+        elideWidth: Math.max(0, root.width - icon.width - Tokens.spacing.small * 2)
 
         onTextChanged: {
             const next = root.current === text1 ? text2 : text1;
@@ -98,10 +112,6 @@ Item {
             root.current = next;
         }
         onElideWidthChanged: root.current.text = elidedText
-    }
-
-    Behavior on implicitWidth {
-        Anim {}
     }
 
     component Title: StyledText {

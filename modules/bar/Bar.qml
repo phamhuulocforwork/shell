@@ -70,7 +70,7 @@ RowLayout {
             }
         } else if (id === "activeWindow" && Config.bar.popouts.activeWindow && Config.bar.activeWindow.showOnHover) {
             popouts.currentName = id.toLowerCase();
-            popouts.currentCenter = (ch.item as Item).mapToItem(root, (ch.item as Item).implicitWidth / 2, 0).x ?? 0;
+            popouts.currentCenter = root.width / 2;
             popouts.hasCurrent = true;
         }
     }
@@ -116,7 +116,6 @@ RowLayout {
             DelegateChoice {
                 roleValue: "spacer"
                 delegate: EntryWrapper {
-                    Layout.fillWidth: true
                 }
             }
             DelegateChoice {
@@ -140,6 +139,8 @@ RowLayout {
             DelegateChoice {
                 roleValue: "activeWindow"
                 delegate: EntryWrapper {
+                    Layout.fillWidth: true
+
                     ActiveWindow {
                         objectName: "taskbarActiveWindow"
                         bar: root
