@@ -5,32 +5,61 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import M3Shapes
-import Caelestia.Components
 import Caelestia.Config
 import qs.components
 import qs.services
 import qs.utils
 
-Item {
+RowLayout {
     id: root
 
-    required property int modelData
     required property int index
     required property int activeWsId
-    required property int ws
+    required property var occupied
+    required property int groupOffset
+    required property bool shouldShow
 
-    required property int displayType
-    required property bool showWindows
-    required property var iconRules
-    property string activeLabel
-    property string occupiedLabel
-    property string label
+    required property Repeater workspaceRepeater
+    required property real layoutSpacing
 
-    readonly property list<HyprlandToplevel> toplevels: Hypr.toplevelsForWs(ws, GlobalConfig.bar.workspaces.ignoredTags)
-    readonly property bool isOccupied: toplevels.length > 0
-    readonly property bool hasWindows: isOccupied && showWindows && Config.bar.workspaces.maxWindowIcons > 0
+    readonly property bool isWorkspace: true // Flag for finding workspace children
+    // Unanimated prop for others to use as reference
+    readonly property int size: implicitWidth + (hasWindows ? Tokens.padding.extraSmall : 0)
+
+    readonly property int ws: groupOffset + index + 1
+    readonly property bool isOccupied: occupied[ws] ?? false
+    readonly property bool hasWindows: isOccupied && Config.bar.workspaces.showWindows && (Config.bar.workspaces.maxWindowIcons > 0)
     readonly property bool focused: activeWsId === ws
+    readonly property var iconRules: GlobalConfig.bar.workspaces.workspaceIcons
     readonly property list<int> focusedShapeList: [MaterialShape.Slanted, MaterialShape.Oval, MaterialShape.Pill, MaterialShape.Triangle, MaterialShape.Arrow, MaterialShape.Diamond, MaterialShape.Pentagon, MaterialShape.Gem, MaterialShape.VerySunny, MaterialShape.Sunny, MaterialShape.Cookie4Sided, MaterialShape.Cookie6Sided, MaterialShape.Cookie7Sided, MaterialShape.Cookie9Sided, MaterialShape.Cookie12Sided, MaterialShape.Clover4Leaf, MaterialShape.SoftBurst, MaterialShape.Ghostish]
+
+    readonly property real revealProgress: Math.max(0, Math.min(1, reveal))
+    readonly property bool revealTransitionRunning: revealAnimation.running
+    readonly property real precedingRevealProgress: {
+        let progress = 0;
+
+        for (let i = 0; i < index; ++i) {
+            const workspace = workspaceRepeater.itemAt(i) as Workspace;
+            if (workspace)
+                progress = Math.max(progress, workspace.revealProgress);
+        }
+
+        return progress;
+    }
+    readonly property real targetX: {
+        let offset = 0;
+
+        for (let i = 0; i < index; ++i) {
+            const workspace = workspaceRepeater.itemAt(i) as Workspace;
+            if (workspace?.shouldShow)
+                offset += workspace.size + layoutSpacing;
+        }
+
+        return offset;
+    }
+
+    property real reveal: shouldShow ? 1 : 0
+    property real animatedSize: size
 
     function updateShape(): void {
         const shape = indicator.item as MaterialShape;
@@ -43,29 +72,33 @@ Item {
             shape.shape = Qt.binding(() => isOccupied ? MaterialShape.Square : MaterialShape.Circle);
     }
 
-    anchors.horizontalCenter: parent?.horizontalCenter
-    LazyListView.preferredHeight: LazyListView.removing ? 0 : layout.implicitHeight + (hasWindows ? Tokens.padding.extraSmall : 0)
-    LazyListView.visibleHeight: LazyListView.preferredHeight
+    Layout.alignment: Qt.AlignVCenter
+    Layout.preferredWidth: animatedSize * revealProgress
+    Layout.leftMargin: layoutSpacing * Math.min(revealProgress, precedingRevealProgress)
 
-    opacity: LazyListView.removing || LazyListView.adding ? 0 : 1
+    visible: shouldShow || revealProgress > 0
+    opacity: revealProgress
+    clip: true
+
+    spacing: 0
 
     onFocusedChanged: updateShape()
     Component.onCompleted: updateShape()
 
-    Behavior on LazyListView.visibleHeight {
-        Anim {}
-    }
+    Loader {
+        id: indicator
 
-    Behavior on y {
-        enabled: root.LazyListView.ready
-
-        Anim {}
-    }
-
-    Behavior on opacity {
-        Anim {
-            type: Anim.DefaultEffects
+        Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+        Layout.preferredWidth: Tokens.sizes.bar.innerWidth - Tokens.padding.small
+        sourceComponent: {
+            if (Config.bar.workspaces.displayType === BarWorkspaceDisplay.Icons)
+                return iconLoaderComponent;
+            if (Config.bar.workspaces.displayType === BarWorkspaceDisplay.Text)
+                return textComponent;
+            return shapeComponent;
         }
+
+        onItemChanged: root.updateShape()
     }
 
     Component {
@@ -97,18 +130,18 @@ Item {
             animate: true
             text: {
                 if (root.focused) {
-                    const label = root.activeLabel;
+                    const label = Config.bar.workspaces.activeLabel;
                     if (label)
                         return label;
                 }
 
                 if (root.focused || root.isOccupied) {
-                    const label = root.occupiedLabel;
+                    const label = Config.bar.workspaces.occupiedLabel;
                     if (label)
                         return label;
                 }
 
-                const label = root.label;
+                const label = Config.bar.workspaces.label;
                 if (label)
                     return label;
 
@@ -117,9 +150,9 @@ Item {
 
                 const capitalisation = Config.bar.workspaces.capitalisation;
                 if (capitalisation === BarWorkspaceCapitalisation.Upper)
-                    return String(wsName).toUpperCase();
+                    return wsName.toString().toUpperCase();
                 else if (capitalisation === BarWorkspaceCapitalisation.Lower)
-                    return String(wsName).toLowerCase();
+                    return wsName.toString().toLowerCase();
                 return wsName;
             }
             color: Config.bar.workspaces.occupiedBg || root.isOccupied || root.focused ? Colours.palette.m3onSurface : Colours.layer(Colours.palette.m3outlineVariant, 2)
@@ -156,78 +189,70 @@ Item {
         }
     }
 
-    ColumnLayout {
-        id: layout
+    Loader {
+        id: windows
 
-        anchors.fill: parent
-        spacing: 0
+        asynchronous: true
 
-        Loader {
-            id: indicator
+        Layout.alignment: Qt.AlignVCenter
+        Layout.fillWidth: true
+        Layout.leftMargin: -Tokens.spacing.extraSmall / 2
 
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-            Layout.preferredHeight: Tokens.sizes.bar.innerWidth - Tokens.padding.small
-            sourceComponent: {
-                if (root.displayType === BarWorkspaceDisplay.Icons)
-                    return iconLoaderComponent;
-                if (root.displayType === BarWorkspaceDisplay.Text)
-                    return textComponent;
-                return shapeComponent;
+        visible: active
+        active: root.hasWindows
+
+        sourceComponent: Row {
+            spacing: 0
+
+            add: Transition {
+                Anim {
+                    properties: "scale"
+                    from: 0
+                    to: 1
+                    easing: Tokens.anim.standardDecel
+                }
             }
 
-            onItemChanged: root.updateShape()
-        }
+            move: Transition {
+                Anim {
+                    properties: "scale"
+                    to: 1
+                    easing: Tokens.anim.standardDecel
+                }
+                Anim {
+                    properties: "x,y"
+                }
+            }
 
-        Loader {
-            id: windows
-
-            asynchronous: true
-
-            Layout.fillWidth: true
-            Layout.topMargin: -Tokens.spacing.extraSmall / 2
-            Layout.preferredHeight: root.hasWindows && item ? (item as LazyListView).layoutHeight : 0
-
-            visible: active
-            active: root.showWindows && Config.bar.workspaces.maxWindowIcons > 0
-
-            sourceComponent: LazyListView {
-                spacing: 0
-                implicitHeight: contentHeight
-                cullDelegates: false
-                removeDuration: Tokens.anim.durations.expressiveDefaultEffects
-
+            Repeater {
                 model: ScriptModel {
                     values: {
-                        const windows = root.toplevels;
+                        const windows = Hypr.toplevelsForWs(root.ws, GlobalConfig.bar.workspaces.ignoredTags);
                         const maxIcons = root.Config.bar.workspaces.maxWindowIcons;
                         return maxIcons > 0 ? windows.slice(0, maxIcons) : windows;
                     }
                 }
 
-                delegate: MaterialIcon {
-                    id: win
-
+                MaterialIcon {
                     required property var modelData
-                    required property int index // Needed, LazyListView will fail to set it if it doesn't exist
 
                     grade: 0
-                    horizontalAlignment: Text.AlignHCenter
                     text: Icons.getAppCategoryIcon(modelData.lastIpcObject.class, "terminal")
                     color: Colours.palette.m3onSurfaceVariant
-
-                    opacity: LazyListView.adding || LazyListView.removing ? 0 : 1
-
-                    Behavior on opacity {
-                        Anim {
-                            type: Anim.DefaultEffects
-                        }
-                    }
-
-                    Behavior on y {
-                        Anim {}
-                    }
                 }
             }
+        }
+    }
+
+    Behavior on animatedSize {
+        Anim {}
+    }
+
+    Behavior on reveal {
+        Anim {
+            id: revealAnimation
+
+            type: Anim.DefaultEffects
         }
     }
 

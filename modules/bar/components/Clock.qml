@@ -19,20 +19,20 @@ StyledRect {
         return root.font.width(scale * 100).letterSpacing(scale).build();
     }
 
-    implicitWidth: Tokens.sizes.bar.innerWidth
-    implicitHeight: layout.implicitHeight + root.padding * 2
+    implicitWidth: layout.implicitWidth + root.padding * 2
+    implicitHeight: Tokens.sizes.bar.innerWidth
 
     color: Qt.alpha(Colours.tPalette.m3surfaceContainer, Config.bar.clock.background ? Colours.tPalette.m3surfaceContainer.a : 0)
     radius: Tokens.rounding.full
 
-    ColumnLayout {
+    RowLayout {
         id: layout
 
         anchors.centerIn: parent
         spacing: Tokens.spacing.extraSmall
 
         Loader {
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignVCenter
             asynchronous: true
             active: Config.bar.clock.showIcon
             visible: active
@@ -44,7 +44,7 @@ StyledRect {
         }
 
         Loader {
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignVCenter
             asynchronous: true
             active: Config.bar.clock.showDate
             visible: active
@@ -65,21 +65,19 @@ StyledRect {
                     font: root.font.scale(1.1).build()
                     color: root.colour
                 }
-
-                StyledRect {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: -Tokens.padding.extraSmall
-                    Layout.rightMargin: -Tokens.padding.extraSmall
-                    Layout.topMargin: 4
-                    Layout.bottomMargin: Tokens.padding.extraSmall / 2
-                    implicitHeight: 1
-                    color: Colours.palette.m3outlineVariant
-                }
             }
         }
 
+        StyledRect {
+            Layout.fillHeight: true
+            Layout.leftMargin: Tokens.padding.extraSmall / 2
+            Layout.rightMargin: -Tokens.padding.extraSmall / 2
+            implicitWidth: 1
+            color: Colours.palette.m3outlineVariant
+        }
+
         StyledText {
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignVCenter
             text: Time.hourStr
             font: root.fontFor(text, hourMetrics.width)
             color: root.colour
@@ -93,8 +91,7 @@ StyledRect {
         }
 
         StyledText {
-            Layout.topMargin: -parent.spacing - 4
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignVCenter
             text: Time.minuteStr
             font: root.fontFor(text, minMetrics.width)
             color: root.colour
@@ -108,8 +105,7 @@ StyledRect {
         }
 
         Loader {
-            Layout.topMargin: -parent.spacing - 4
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignVCenter
             asynchronous: true
             active: Config.bar.clock.showSeconds
             visible: active

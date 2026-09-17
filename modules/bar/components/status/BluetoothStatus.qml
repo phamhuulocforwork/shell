@@ -22,7 +22,7 @@ Item {
         }
     }
 
-    ColumnLayout {
+    RowLayout {
         id: layout
 
         spacing: Tokens.spacing.medium / 2
