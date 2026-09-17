@@ -13,6 +13,12 @@ StyledRect {
     readonly property int padding: Config.bar.clock.background ? Tokens.padding.medium : Tokens.padding.extraSmall
     readonly property var font: Tokens.font.body.builders.small.scale(1.1)
 
+    function fontFor(text: string, metricWidth: int): font {
+        // We don't count seconds for the max width because it changes too often
+        const scale = text === "11" ? 1.15 : Math.min(1.05, Math.max(hourMetrics.width, minMetrics.width) / metricWidth);
+        return root.font.width(scale * 100).letterSpacing(scale).build();
+    }
+
     implicitWidth: layout.implicitWidth + root.padding * 2
     implicitHeight: Tokens.sizes.bar.innerWidth
 
