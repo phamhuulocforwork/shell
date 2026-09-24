@@ -4,7 +4,6 @@ import QtQuick
 import QtQuick.Layouts
 import Caelestia.Components
 import Caelestia.Config
-import Caelestia.I18n
 import qs.components
 import qs.components.controls
 import qs.components.images
@@ -14,7 +13,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: Tr.tr("Wallpaper & style")
+    title: qsTr("Wallpaper & style")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -56,7 +55,7 @@ PageBase {
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: Tr.tr("Wallpaper disabled")
+                        text: qsTr("Wallpaper disabled")
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.body.large
                     }
@@ -124,7 +123,16 @@ PageBase {
                     id: wallImg
 
                     anchors.fill: parent
-                    source: Wallpapers.current
+                    source: {
+                        let path = String(Wallpapers.current);
+                        if (path.match(/\.(mp4|mkv|webm|avi|mov)$/i)) {
+                            let parts = path.split("/");
+                            let homeDir = "/" + parts[1] + "/" + parts[2];
+                            let fileName = parts[parts.length - 1];
+                            return homeDir + "/.cache/caelestia/live_thumbs/" + fileName + ".jpg";
+                        }
+                        return path;
+                    }
                     preventInit: wallIndicatorLoader.opacity > 0
                     fadeOutAnim: Anim.DefaultEffects
                     fadeInAnim: Anim.SlowEffects
@@ -147,7 +155,7 @@ PageBase {
 
             IconTextButton {
                 icon: "wallpaper"
-                text: Tr.tr("Wallpapers")
+                text: qsTr("Wallpapers")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -160,7 +168,7 @@ PageBase {
 
             IconTextButton {
                 icon: "palette"
-                text: Tr.tr("Colours")
+                text: qsTr("Colours")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -169,11 +177,24 @@ PageBase {
                 verticalPadding: Tokens.padding.medium
                 onClicked: root.nState.openSubPage(3) // Colours page
             }
+
+            IconTextButton {
+                icon: "tune"
+                text: qsTr("Settings")
+                font: Tokens.font.body.large
+                isRound: true
+                shapeMorph: true
+                type: IconTextButton.Tonal
+                horizontalPadding: Tokens.padding.extraLarge
+                verticalPadding: Tokens.padding.medium
+                disabled: !Config.background.wallpaperEnabled
+                onClicked: root.nState.openSubPage(4) // Settings page
+            }
         }
 
         ToggleRow {
             first: true
-            text: Tr.tr("Display wallpaper")
+            text: qsTr("Display wallpaper")
             checked: Config.background.wallpaperEnabled
             onToggled: GlobalConfig.background.wallpaperEnabled = checked
         }
@@ -181,9 +202,8 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
 
-            text: Tr.tr("Transparency")
-            // TRANSLATORS: %1/%2 = opacity values from 0 to 1 for the base surface and layered surfaces
-            subtext: Tr.tr("Base %1, layers %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
+            text: qsTr("Transparency")
+            subtext: qsTr("Base %1, layers %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
             checked: Colours.transparency.enabled
             onToggled: GlobalConfig.appearance.transparency.enabled = checked
         }
@@ -191,10 +211,22 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
 
-            last: true
-            text: Tr.tr("Dark theme")
+            text: qsTr("Dark theme")
             checked: !Colours.light
             onToggled: Colours.setMode(checked ? "dark" : "light")
+        }
+
+        ToggleRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+
+            last: true
+            text: qsTr("Wallpaper behavior")
+            subtext: qsTr("Smart pause, battery limits and performance rules")
+            checked: Wallpapers.behaviorEnabled
+            onToggled: {
+                Wallpapers.behaviorEnabled = checked;
+                Wallpapers.saveSettings();
+            }
         }
     }
 }

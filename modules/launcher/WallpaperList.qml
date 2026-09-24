@@ -23,10 +23,9 @@ PathView {
             return 0;
 
         // Screen width - 4x outer rounding - 2x max side thickness (cause centered)
-        const barMargins = Config.border.thickness;
+        const barMargins = Math.max(Config.border.thickness, panels.bar.implicitWidth);
         let outerMargins = 0;
-        // ponytail: reserve popout width only when it vertically reaches the launcher zone
-        if (panels.popouts.hasCurrent && panels.bar.implicitHeight + panels.popouts.nonAnimHeight > screen.height - content.implicitHeight - Config.border.thickness * 2)
+        if (panels.popouts.hasCurrent && panels.popouts.currentCenter + panels.popouts.nonAnimHeight / 2 > screen.height - content.implicitHeight - Config.border.thickness * 2)
             outerMargins = panels.popouts.nonAnimWidth;
         if ((screenState.utilities || screenState.sidebar) && panels.utilities.implicitWidth > outerMargins)
             outerMargins = panels.utilities.implicitWidth;
@@ -49,17 +48,60 @@ PathView {
         id: scriptModel
 
         readonly property string search: root.search.text.split(" ").slice(1).join(" ")
+        readonly property string colorFilter: Wallpapers.colorFilter
+        readonly property int filterMode: Wallpapers.filterMode
+        readonly property var allWallpapers: Wallpapers.list
 
-        values: Wallpapers.query(search)
-        onValuesChanged: root.currentIndex = search ? 0 : values.findIndex(w => w.path === Wallpapers.actualCurrent)
+        values: {
+            const _cf = colorFilter;
+            const _fm = filterMode;
+            const _list = allWallpapers;
+            return Wallpapers.query(search);
+        }
+        onValuesChanged: {
+            if (values.length === 0) {
+                previewDebounce.stop();
+                Wallpapers.stopPreview();
+            } else {
+                let targetIdx = (search || colorFilter || filterMode !== 0) ? 0 : Math.max(0, values.findIndex(w => w.path === Wallpapers.actualCurrent));
+                root.currentIndex = targetIdx;
+                Qt.callLater(() => {
+                    root.positionViewAtIndex(targetIdx, PathView.SnapPosition);
+                });
+            }
+        }
     }
 
-    Component.onCompleted: currentIndex = Wallpapers.list.findIndex(w => w.path === Wallpapers.actualCurrent)
+    Component.onCompleted: {
+        let idx = Math.max(0, Wallpapers.list.findIndex(w => w.path === Wallpapers.actualCurrent));
+        currentIndex = idx;
+        Qt.callLater(() => {
+            positionViewAtIndex(idx, PathView.SnapPosition);
+        });
+    }
     Component.onDestruction: Wallpapers.stopPreview()
 
+    Timer {
+        id: previewDebounce
+        interval: 220
+        property string pendingPath: ""
+        onTriggered: {
+            if (pendingPath && root.count > 0) {
+                Wallpapers.preview(pendingPath);
+            } else {
+                Wallpapers.stopPreview();
+            }
+        }
+    }
+
     onCurrentItemChanged: {
-        if (currentItem)
-            Wallpapers.preview((currentItem as WallpaperItem).modelData.path);
+        if (currentItem) {
+            let item = currentItem as WallpaperItem;
+            if (item && item.modelData && item.modelData.path) {
+                previewDebounce.pendingPath = item.modelData.path;
+                previewDebounce.restart();
+            }
+        }
     }
 
     implicitWidth: Math.min(numItems, count) * itemWidth
